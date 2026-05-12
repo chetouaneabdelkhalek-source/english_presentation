@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Rot Leaderboard - Instructor</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0b1120;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f1b2d;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #5ae0f8;
+            border-radius: 3px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(180deg, rgba(0,0,0,0.9), transparent);
+            backdrop-filter: blur(10px);
+            padding: 40px 5%;
+            border-bottom: 2px solid rgba(255, 0, 85, 0.2);
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f2608e, #f07848, #e8b840);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .refresh-info {
+            font-size: 0.85rem;
+            color: #3edf88;
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* Main Container */
+        .main {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 0 5%;
+            min-height: calc(100vh - 300px);
+        }
+
+        /* Stats Section */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .stat-card {
+            background: rgba(255, 0, 85, 0.08);
+            border: 2px solid rgba(255, 0, 85, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(255, 0, 85, 0.4);
+            background: rgba(255, 0, 85, 0.12);
+            transform: translateY(-5px);
+        }
+
+        .stat-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            font-weight: 900;
+            color: #f2608e;
+        }
+
+        .stat-detail {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 10px;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            padding: 12px 30px;
+            border: 2px solid rgba(255, 0, 85, 0.3);
+            background: rgba(255, 0, 85, 0.05);
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background: rgba(255, 0, 85, 0.15);
+            border-color: #f2608e;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f2608e, #f07848);
+            border: none;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.3);
+            transform: scale(1.02);
+        }
+
+        /* Leaderboard */
+        .leaderboard {
+            background: rgba(255, 0, 85, 0.05);
+            border: 2px solid rgba(255, 0, 85, 0.2);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .leaderboard-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            padding: 30px;
+            background: rgba(255, 0, 85, 0.08);
+            border-bottom: 2px solid rgba(255, 0, 85, 0.2);
+            color: #fff;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table thead tr {
+            background: rgba(255, 0, 85, 0.1);
+            border-bottom: 2px solid rgba(255, 0, 85, 0.2);
+        }
+
+        .leaderboard-table th {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.95rem;
+            padding: 20px;
+            text-align: left;
+            color: #f2608e;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .leaderboard-table td {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 0, 85, 0.1);
+            font-size: 1rem;
+        }
+
+        .leaderboard-table tbody tr:hover {
+            background: rgba(255, 0, 85, 0.08);
+        }
+
+        .rank {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #f07848;
+            width: 60px;
+            text-align: center;
+        }
+
+        .rank-1 { color: #ffd700; }
+        .rank-2 { color: #c0c0c0; }
+        .rank-3 { color: #cd7f32; }
+
+        .name {
+            font-family: 'Orbitron', monospace;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+        }
+
+        .score {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #3edf88;
+        }
+
+        .percentage {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .timestamp {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .empty-state h3 {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 5%;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            margin-top: 50px;
+        }
+
+        /* Noise Overlay */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        /* Share Section */
+        .share-section {
+            background: rgba(0, 255, 136, 0.08);
+            border: 2px solid rgba(0, 255, 136, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .share-section h3 {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #3edf88;
+        }
+
+        .share-link {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-family: 'Space Mono', monospace;
+            word-break: break-all;
+            color: #5ae0f8;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .leaderboard-table th,
+            .leaderboard-table td {
+                padding: 12px 10px;
+                font-size: 0.9rem;
+            }
+
+            .stats-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="noise-overlay"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>🧠 LEADERBOARD</h1>
+        <p>BRAIN ROT QUIZ SCORES</p>
+        <div class="refresh-info">
+            🔄 Auto-refreshing every 3 seconds
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+
+        <!-- Share Section -->
+        <div class="share-section">
+            <h3>📤 Share Quiz Link with Your Friends</h3>
+            <div class="share-link" id="shareLink">Loading...</div>
+            <button class="btn btn-primary" onclick="copyLink()">📋 COPY LINK</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-label">Total Participants</div>
+                <div class="stat-number" id="totalParticipants">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Average Score</div>
+                <div class="stat-number" id="averageScore">0</div>
+                <div class="stat-detail">out of 6</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Highest Score</div>
+                <div class="stat-number" id="highestScore">0</div>
+                <div class="stat-detail" id="topScorer">-</div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn btn-primary" onclick="refreshScores()">🔄 REFRESH NOW</button>
+            <button class="btn" onclick="clearAllScores()">🗑️ CLEAR SCORES</button>
+            <button class="btn" onclick="exportScores()">📥 EXPORT CSV</button>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="leaderboard">
+            <div class="leaderboard-title">
+                🏆 Top Performers
+            </div>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">RANK</th>
+                        <th>NAME</th>
+                        <th style="width: 120px;">SCORE</th>
+                        <th style="width: 150px;">TIME</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.5);">
+                            Waiting for scores... 📊
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>BRAIN ROT LEADERBOARD — INSTRUCTOR VIEW — AUTO-UPDATES EVERY 3 SECONDS</p>
+    </div>
+
+    <script>
+        // Set up the quiz link
+        function setupQuizLink() {
+            const currentURL = window.location.href.split('brain_rot_leaderboard')[0];
+            const quizLink = currentURL + 'brain_rot_quiz_shared.html';
+            document.getElementById('shareLink').textContent = quizLink;
+        }
+
+        // Refresh scores from localStorage
+        function refreshScores() {
+            const scores = JSON.parse(localStorage.getItem('brainRotScores')) || [];
+            
+            // Sort by score descending
+            scores.sort((a, b) => b.score - a.score);
+
+            // Update stats
+            updateStats(scores);
+
+            // Update leaderboard
+            updateLeaderboard(scores);
+        }
+
+        function updateStats(scores) {
+            const totalParticipants = scores.length;
+            const averageScore = totalParticipants > 0 
+                ? (scores.reduce((sum, s) => sum + s.score, 0) / totalParticipants).toFixed(1)
+                : 0;
+            const highestScore = scores.length > 0 ? scores[0].score : 0;
+            const topScorerName = scores.length > 0 ? scores[0].name : '-';
+
+            document.getElementById('totalParticipants').textContent = totalParticipants;
+            document.getElementById('averageScore').textContent = averageScore;
+            document.getElementById('highestScore').textContent = highestScore;
+            document.getElementById('topScorer').textContent = `🥇 ${topScorerName}`;
+        }
+
+        function updateLeaderboard(scores) {
+            const tbody = document.getElementById('leaderboardBody');
+
+            if (scores.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 60px 40px; color: rgba(255, 255, 255, 0.5);">
+                            <div style="font-size: 1.2rem; margin-bottom: 10px;">📊 No scores yet</div>
+                            <div style="font-size: 0.9rem;">Share the quiz link with your classmates to get started!</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            scores.forEach((score, index) => {
+                const rank = index + 1;
+                const percentage = ((score.score / score.total) * 100).toFixed(0);
+                const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank + '.';
+
+                html += `
+                    <tr>
+                        <td class="rank ${rankClass}">${medal}</td>
+                        <td class="name">${score.name}</td>
+                        <td class="score">${score.score}/${score.total} <span class="percentage">(${percentage}%)</span></td>
+                        <td class="timestamp">${score.timestamp}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function copyLink() {
+            const link = document.getElementById('shareLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✓ COPIED!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        function clearAllScores() {
+            if (confirm('⚠️ Are you sure? This will delete all student scores!')) {
+                localStorage.removeItem('brainRotScores');
+                refreshScores();
+                alert('All scores have been cleared.');
+            }
+        }
+
+        function exportScores() {
+            const scores = JSON.parse(localStorage.getItem('brainRotScores')) || [];
+            scores.sort((a, b) => b.score - a.score);
+
+            let csv = 'Rank,Name,Score,Percentage,Timestamp\n';
+            scores.forEach((score, index) => {
+                const percentage = ((score.score / score.total) * 100).toFixed(0);
+                csv += `${index + 1},"${score.name}",${score.score}/${score.total},${percentage}%,"${score.timestamp}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'brain_rot_scores.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            setupQuizLink();
+            refreshScores();
+            
+            // Auto-refresh every 3 seconds
+            setInterval(refreshScores, 3000);
+        });
+    </script>
+
+</body>
+</html>
