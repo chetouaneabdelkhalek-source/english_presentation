@@ -669,31 +669,18 @@
         }
 
         async function submitQuiz() {
-    let score = 0;
-    answers.forEach((answerIndex, questionIndex) => {
-        if (answerIndex !== null && questions[questionIndex].options[answerIndex].correct) {
-            score++;
-        }
-    });
-
-    // 1. Show results on screen
-    displayResults(score);
-
-    // 2. Send to Supabase Leaderboard
-    await saveFinalScore(userName, score);
-}
-
-            // Save score to localStorage
-            let scores = JSON.parse(localStorage.getItem('brainRotScores')) || [];
-            scores.push({
-                name: userName,
-                score: score,
-                total: questions.length,
-                timestamp: new Date().toLocaleTimeString()
+            let score = 0;
+            answers.forEach((answerIndex, questionIndex) => {
+                if (answerIndex !== null && questions[questionIndex].options[answerIndex].correct) {
+                    score++;
+                }
             });
-            localStorage.setItem('brainRotScores', JSON.stringify(scores));
 
+            // 1. Show results on screen
             displayResults(score);
+
+            // 2. Send to Supabase Leaderboard
+            await saveFinalScore(userName, score);
         }
 
         function displayResults(score) {

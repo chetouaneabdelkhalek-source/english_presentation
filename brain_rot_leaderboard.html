@@ -410,28 +410,7 @@
     </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<div id="display-list">Loading scores...</div>
 
-<script>
-  const supabaseUrl = 'https://fhhdibqjyzfzkkyoruvf.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoaGRpYnFqeXpmemtreW9ydXZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1OTc4MjgsImV4cCI6MjA5NDE3MzgyOH0.0kxrY5VsjryRBRPuOmzDdC6j2v2FkjsFdm34d2aFuVU'; // <--- PASTE THE SAME KEY HERE
-  const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-  async function showScores() {
-    const { data, error } = await _supabase
-      .from('leaderboard')
-      .select('username, score')
-      .order('score', { ascending: false })
-      .limit(10);
-
-    if (data) {
-      const listHtml = data.map(item => `<li>${item.username}: ${item.score}</li>`).join('');
-      document.getElementById('display-list').innerHTML = `<ul>${listHtml}</ul>`;
-    }
-  }
-
-  showScores();
-</script>
     <script>
         // Set up the quiz link
         function setupQuizLink() {
@@ -481,55 +460,6 @@ async function refreshScores() {
     }).join('');
 }
 
-        function updateStats(scores) {
-            const totalParticipants = scores.length;
-            const averageScore = totalParticipants > 0 
-                ? (scores.reduce((sum, s) => sum + s.score, 0) / totalParticipants).toFixed(1)
-                : 0;
-            const highestScore = scores.length > 0 ? scores[0].score : 0;
-            const topScorerName = scores.length > 0 ? scores[0].name : '-';
-
-            document.getElementById('totalParticipants').textContent = totalParticipants;
-            document.getElementById('averageScore').textContent = averageScore;
-            document.getElementById('highestScore').textContent = highestScore;
-            document.getElementById('topScorer').textContent = `🥇 ${topScorerName}`;
-        }
-
-        function updateLeaderboard(scores) {
-            const tbody = document.getElementById('leaderboardBody');
-
-            if (scores.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="4" style="text-align: center; padding: 60px 40px; color: rgba(255, 255, 255, 0.5);">
-                            <div style="font-size: 1.2rem; margin-bottom: 10px;">📊 No scores yet</div>
-                            <div style="font-size: 0.9rem;">Share the quiz link with your classmates to get started!</div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            let html = '';
-            scores.forEach((score, index) => {
-                const rank = index + 1;
-                const percentage = ((score.score / score.total) * 100).toFixed(0);
-                const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
-                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank + '.';
-
-                html += `
-                    <tr>
-                        <td class="rank ${rankClass}">${medal}</td>
-                        <td class="name">${score.name}</td>
-                        <td class="score">${score.score}/${score.total} <span class="percentage">(${percentage}%)</span></td>
-                        <td class="timestamp">${score.timestamp}</td>
-                    </tr>
-                `;
-            });
-
-            tbody.innerHTML = html;
-        }
-
         function copyLink() {
             const link = document.getElementById('shareLink').textContent;
             navigator.clipboard.writeText(link).then(() => {
@@ -542,22 +472,37 @@ async function refreshScores() {
             });
         }
 
-        function clearAllScores() {
-            if (confirm('⚠️ Are you sure? This will delete all student scores!')) {
-                localStorage.removeItem('brainRotScores');
-                refreshScores();
-                alert('All scores have been cleared.');
+        async function clearAllScores() {
+            if (confirm('⚠️ Are you sure? This will permanently delete all student scores from the leaderboard!')) {
+                const { error } = await _supabase
+                    .from('leaderboard')
+                    .delete()
+                    .neq('id', 0); // delete all rows
+
+                if (error) {
+                    console.error("Error clearing scores:", error);
+                    alert('Failed to clear scores: ' + error.message);
+                } else {
+                    refreshScores();
+                    alert('All scores have been cleared.');
+                }
             }
         }
 
-        function exportScores() {
-            const scores = JSON.parse(localStorage.getItem('brainRotScores')) || [];
-            scores.sort((a, b) => b.score - a.score);
+        async function exportScores() {
+            const { data: scores, error } = await _supabase
+                .from('leaderboard')
+                .select('*')
+                .order('score', { ascending: false });
 
-            let csv = 'Rank,Name,Score,Percentage,Timestamp\n';
+            if (error || !scores) {
+                alert('Failed to fetch scores for export.');
+                return;
+            }
+
+            let csv = 'Rank,Name,Score,Timestamp\n';
             scores.forEach((score, index) => {
-                const percentage = ((score.score / score.total) * 100).toFixed(0);
-                csv += `${index + 1},"${score.name}",${score.score}/${score.total},${percentage}%,"${score.timestamp}"\n`;
+                csv += `${index + 1},"${score.username}",${score.score}/6,"${new Date(score.created_at).toLocaleString()}"\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv' });
@@ -569,16 +514,6 @@ async function refreshScores() {
             a.click();
             document.body.removeChild(a);
         }
-
-        // Initialize
-        window.addEventListener('load', () => {
-            setupQuizLink();
-            refreshScores();
-            
-            // Auto-refresh every 3 seconds
-            setInterval(refreshScores, 3000);
-        });
-    </script>
 
 </body>
 </html>
