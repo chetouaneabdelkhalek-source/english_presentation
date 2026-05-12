@@ -519,5 +519,20 @@ async function refreshScores() {
             document.body.removeChild(a);
         }
 
+        // ── Supabase init ──────────────────────────────────────────────────────
+        const supabaseUrl = 'https://fhhdibqjyzfzkkyoruvf.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoaGRpYnFqeXpmemtreW9ydXZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1OTc4MjgsImV4cCI6MjA5NDE3MzgyOH0.0kxrY5VsjryRBRPuOmzDdC6j2v2FkjsFdm34d2aFuVU';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // ── Bootstrap on page load ─────────────────────────────────────────────
+        window.addEventListener('load', () => {
+            setupQuizLink();
+            refreshScores();
+            // Auto-refresh every 3 seconds
+            setInterval(refreshScores, 3000);
+        });
+
+    </script>
+
 </body>
 </html>
