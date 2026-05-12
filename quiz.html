@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Brain Rot Mobile Quiz</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+
+    background:#0b1120;
+
+    overflow-y:auto;
+    overflow-x:hidden;
+
+    padding:20px;
+}
+
+/* Floating Background Glows */
+
+.bg-circle{
+    position:fixed;
+    border-radius:50%;
+    filter:blur(80px);
+    opacity:0.18;
+    z-index:0;
+}
+
+.bg1{
+    width:350px;
+    height:350px;
+    background:#f2608e;
+    top:-80px;
+    left:-80px;
+}
+
+.bg2{
+    width:400px;
+    height:400px;
+    background:#f07848;
+    bottom:-120px;
+    right:-120px;
+}
+
+/* Floating Emojis */
+
+.floating{
+    position:fixed;
+    font-size:2rem;
+    opacity:0.12;
+    animation:floatEmoji linear infinite;
+    z-index:0;
+}
+
+@keyframes floatEmoji{
+    from{ transform:translateY(110vh) rotate(0deg); }
+    to{   transform:translateY(-120px) rotate(360deg); }
+}
+
+/* Quiz Container */
+
+.quiz-container{
+    width:100%;
+    max-width:700px;
+
+    background:rgba(11,17,32,0.78);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+
+    border:1px solid rgba(242,96,142,0.18);
+    border-radius:28px;
+
+    padding:40px;
+    margin:20px 0;
+
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+
+    position:relative;
+    z-index:2;
+}
+
+/* Header */
+
+.quiz-header{
+    text-align:center;
+}
+
+.quiz-title{
+    font-family:'Orbitron',monospace;
+    font-size:2.8rem;
+    font-weight:900;
+
+    background:linear-gradient(135deg,#f2608e,#f07848,#e8b840);
+    background-size:200% 200%;
+    animation:gradShift 4s ease infinite;
+
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+
+    margin-bottom:10px;
+}
+
+@keyframes gradShift{
+    0%,100%{ background-position:0% 50%; }
+    50%{     background-position:100% 50%; }
+}
+
+.quiz-subtitle{
+    font-family:'Space Mono',monospace;
+    color:rgba(255,255,255,0.55);
+    font-size:0.85rem;
+    letter-spacing:4px;
+    text-transform:uppercase;
+    margin-bottom:28px;
+}
+
+/* Progress Bar */
+
+.progress-container{
+    width:100%;
+    height:6px;
+    background:rgba(255,255,255,0.07);
+    border-radius:20px;
+    overflow:hidden;
+    margin-bottom:38px;
+}
+
+.progress-bar{
+    width:0%;
+    height:100%;
+    background:linear-gradient(90deg,#f2608e,#f07848,#e8b840);
+    transition:width 0.4s ease;
+}
+
+/* Question */
+
+.question{
+    font-family:'Orbitron',monospace;
+    font-size:1.5rem;
+    font-weight:700;
+
+    text-align:center;
+
+    color:rgba(255,255,255,0.97);
+    text-shadow:0 2px 12px rgba(0,0,0,0.8);
+
+    margin-bottom:35px;
+    line-height:1.5;
+}
+
+/* Options */
+
+.options{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+}
+
+.option-btn{
+    border:1px solid rgba(255,255,255,0.08);
+    padding:20px;
+    border-radius:18px;
+
+    background:rgba(255,255,255,0.04);
+
+    cursor:pointer;
+
+    font-family:'Inter',sans-serif;
+    font-size:1rem;
+    font-weight:600;
+
+    color:rgba(255,255,255,0.92);
+
+    transition:all 0.3s ease;
+}
+
+.option-btn:hover{
+    transform:translateY(-3px) scale(1.02);
+    background:linear-gradient(135deg,rgba(242,96,142,0.25),rgba(240,120,72,0.2));
+    border-color:rgba(242,96,142,0.5);
+    color:#fff;
+    box-shadow:0 8px 24px rgba(242,96,142,0.2);
+}
+
+.correct{
+    background:linear-gradient(135deg,rgba(62,223,136,0.3),rgba(62,223,136,0.15))!important;
+    border-color:#3edf88!important;
+    color:#3edf88!important;
+    box-shadow:0 0 20px rgba(62,223,136,0.25)!important;
+}
+
+.wrong{
+    background:linear-gradient(135deg,rgba(242,96,142,0.3),rgba(242,96,142,0.15))!important;
+    border-color:#f2608e!important;
+    color:#f2608e!important;
+    box-shadow:0 0 20px rgba(242,96,142,0.25)!important;
+}
+
+/* Feedback */
+
+.feedback{
+    margin-top:28px;
+    text-align:center;
+    min-height:50px;
+    font-size:1.05rem;
+    font-weight:600;
+    color:rgba(255,255,255,0.9);
+    line-height:1.6;
+}
+
+/* Footer */
+
+.quiz-footer{
+    margin-top:28px;
+    text-align:center;
+}
+
+.next-btn{
+    font-family:'Orbitron',monospace;
+    border:none;
+    padding:14px 36px;
+    border-radius:50px;
+
+    background:linear-gradient(135deg,#f2608e,#f07848);
+
+    color:white;
+    font-size:0.9rem;
+    font-weight:700;
+    letter-spacing:2px;
+
+    cursor:pointer;
+    transition:all 0.3s ease;
+    display:none;
+
+    text-transform:uppercase;
+}
+
+.next-btn:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 30px rgba(242,96,142,0.4);
+}
+
+.score{
+    margin-top:18px;
+    font-family:'Space Mono',monospace;
+    color:rgba(255,255,255,0.55);
+    font-size:0.85rem;
+    letter-spacing:2px;
+}
+
+/* Mobile Responsive */
+
+@media(max-width:768px){
+
+    body{ padding:10px; }
+
+    .quiz-container{
+        padding:24px;
+        border-radius:22px;
+    }
+
+    .quiz-title{ font-size:1.9rem; }
+
+    .question{
+        font-size:1.15rem;
+        margin-bottom:22px;
+    }
+
+    .options{
+        grid-template-columns:1fr;
+        gap:12px;
+    }
+
+    .option-btn{
+        width:100%;
+        padding:16px;
+    }
+
+    .next-btn{
+        width:100%;
+        padding:16px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="bg-circle bg1"></div>
+<div class="bg-circle bg2"></div>
+
+<div class="floating" style="left:10%; animation-duration:8s;">🧠</div>
+<div class="floating" style="left:30%; animation-duration:11s;">📱</div>
+<div class="floating" style="left:50%; animation-duration:7s;">⚡</div>
+<div class="floating" style="left:70%; animation-duration:10s;">💀</div>
+<div class="floating" style="left:90%; animation-duration:9s;">🎮</div>
+
+<div class="quiz-container">
+
+    <div class="quiz-header">
+
+        <div class="quiz-title">
+            🧠 Brain Rot Quiz
+        </div>
+
+        <div class="quiz-subtitle">
+            Mobile Friendly Interactive Quiz
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+    </div>
+
+    <div class="question" id="questionText">
+        Loading...
+    </div>
+
+    <div class="options" id="options"></div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="quiz-footer">
+
+        <button class="next-btn" id="nextBtn" onclick="nextQuestion()">
+            Next Question →
+        </button>
+
+        <div class="score" id="score"></div>
+
+    </div>
+
+</div>
+
+<script>
+
+const questions = [
+
+{
+    q:"🧠 What was 'Brain Rot' named as in 2024?",
+    options:[
+        "Twitter Trend",
+        "Oxford Word of the Year",
+        "TikTok Slang",
+        "Medical Term"
+    ],
+    answer:1,
+    explain:"Oxford named Brain Rot the Word of the Year 2024!"
+},
+
+{
+    q:"📱 What keeps users endlessly scrolling?",
+    options:[
+        "Algorithms",
+        "Homework",
+        "Exercise",
+        "Books"
+    ],
+    answer:0,
+    explain:"Algorithms are designed to maximize screen time!"
+},
+
+{
+    q:"😴 What does blue light affect?",
+    options:[
+        "Melatonin",
+        "Height",
+        "Hair",
+        "Muscles"
+    ],
+    answer:0,
+    explain:"Blue light reduces melatonin and harms sleep!"
+},
+
+{
+    q:"⚡ Which activity helps fight brain rot?",
+    options:[
+        "Reading Books",
+        "Scrolling More",
+        "Watching Shorts All Day",
+        "Sleeping at 3AM"
+    ],
+    answer:0,
+    explain:"Reading improves focus and attention span!"
+},
+
+{
+    q:"🎮 Which platform popularized short videos?",
+    options:[
+        "TikTok",
+        "Excel",
+        "Word",
+        "Photoshop"
+    ],
+    answer:0,
+    explain:"TikTok made ultra-short videos massively popular!"
+}
+
+];
+
+let currentQuestion = 0;
+let score = 0;
+let answered = false;
+
+function loadQuestion(){
+
+    const q = questions[currentQuestion];
+
+    document.getElementById("questionText").textContent =
+        q.q;
+
+    const optionsDiv =
+        document.getElementById("options");
+
+    optionsDiv.innerHTML = "";
+
+    document.getElementById("feedback").textContent = "";
+
+    document.getElementById("nextBtn").style.display =
+        "none";
+
+    document.getElementById("score").textContent =
+        `Score: ${score} / ${questions.length}`;
+
+    const progress =
+        (currentQuestion / questions.length) * 100;
+
+    document.getElementById("progressBar").style.width =
+        progress + "%";
+
+    answered = false;
+
+    q.options.forEach((option,index)=>{
+
+        const btn =
+            document.createElement("button");
+
+        btn.className = "option-btn";
+
+        btn.textContent = option;
+
+        btn.onclick = ()=>answerQuestion(index);
+
+        optionsDiv.appendChild(btn);
+
+    });
+
+}
+
+function answerQuestion(index){
+
+    if(answered) return;
+
+    answered = true;
+
+    const q = questions[currentQuestion];
+
+    const buttons =
+        document.querySelectorAll(".option-btn");
+
+    buttons.forEach((btn,i)=>{
+
+        if(i === q.answer){
+
+            btn.classList.add("correct");
+
+        }
+
+        else if(i === index){
+
+            btn.classList.add("wrong");
+
+        }
+
+    });
+
+    if(index === q.answer){
+
+        score++;
+
+        document.getElementById("feedback").textContent =
+            "✅ Correct! " + q.explain;
+
+        document.getElementById("feedback").style.color =
+            "#3edf88";
+
+    }
+
+    else{
+
+        document.getElementById("feedback").textContent =
+            "❌ Wrong! " + q.explain;
+
+        document.getElementById("feedback").style.color =
+            "#f2608e";
+    }
+
+    document.getElementById("score").textContent =
+        `Score: ${score} / ${questions.length}`;
+
+    if(currentQuestion < questions.length - 1){
+
+        document.getElementById("nextBtn").style.display =
+            "inline-block";
+
+    }
+
+    else{
+
+        setTimeout(()=>{
+
+            const percent =
+                Math.round((score/questions.length)*100);
+
+            let message = "";
+
+            if(percent >= 80){
+
+                message = "🏆 Brain Rot Expert!";
+
+            }
+
+            else if(percent >= 50){
+
+                message = "👍 Nice Job!";
+
+            }
+
+            else{
+
+                message = "📚 Keep Learning!";
+            }
+
+            document.getElementById("feedback").textContent =
+                `🎉 Quiz Finished! Final Score: ${score}/${questions.length} (${percent}%) - ${message}`;
+
+            document.getElementById("progressBar").style.width =
+                "100%";
+
+        },1000);
+
+    }
+
+}
+
+function nextQuestion(){
+
+    currentQuestion++;
+
+    loadQuestion();
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+loadQuestion();
+
+</script>
+
+</body>
+</html>
