@@ -725,19 +725,27 @@
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoaGRpYnFqeXpmemtreW9ydXZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1OTc4MjgsImV4cCI6MjA5NDE3MzgyOH0.0kxrY5VsjryRBRPuOmzDdC6j2v2FkjsFdm34d2aFuVU'; // <--- PASTE YOUR KEY HERE
   const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-  async function saveFinalScore(playerName, playerScore) {
-    const { data, error } = await _supabase
-      .from('leaderboard')
-      .insert([{ username: playerName, score: playerScore }]);
+async function saveFinalScore(playerName, playerScore) {
+  // Manually create a time string (HH:MM:SS) for your "time" column
+  const now = new Date();
+  const timeString = now.getHours().toString().padStart(2, '0') + ':' + 
+                     now.getMinutes().toString().padStart(2, '0') + ':' + 
+                     now.getSeconds().toString().padStart(2, '0');
 
-    if (error) {
-      console.error("Error:", error.message);
-    } else {
-      // Redirect to the leaderboard page
-      window.location.href = "brain_rot_leaderboard.html";
-    }
+  const { data, error } = await _supabase
+    .from('leaderboard')
+    .insert([{ 
+        username: playerName, 
+        score: playerScore,
+        created_at: timeString // Manually sending the time
+    }]);
+
+  if (error) {
+    console.error("Error:", error.message);
+  } else {
+    window.location.href = "brain_rot_leaderboard.html";
   }
-
+}
     </script>
 
 </body>

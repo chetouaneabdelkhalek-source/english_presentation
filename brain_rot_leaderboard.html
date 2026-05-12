@@ -449,17 +449,21 @@ async function refreshScores() {
     const tbody = document.getElementById('leaderboardBody');
     tbody.innerHTML = scores.map((score, index) => {
         const medal = (index === 0) ? '🥇' : (index === 1) ? '🥈' : (index === 2) ? '🥉' : (index + 1) + '.';
+        
+        // QUICK FIX FOR "TIME" TYPE:
+        // If it's just "HH:MM:SS", we display it directly. If it's empty, we show "--:--"
+        const displayTime = score.created_at ? score.created_at : new Date().toLocaleTimeString();
+
         return `
             <tr>
                 <td class="rank">${medal}</td>
                 <td class="name">${score.username}</td>
                 <td class="score">${score.score}/6</td>
-                <td class="timestamp">${new Date(score.created_at).toLocaleTimeString()}</td>
+                <td class="timestamp">${displayTime}</td>
             </tr>
         `;
     }).join('');
 }
-
         function copyLink() {
             const link = document.getElementById('shareLink').textContent;
             navigator.clipboard.writeText(link).then(() => {
