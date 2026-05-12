@@ -408,7 +408,30 @@
     <div class="footer">
         <p>BRAIN ROT LEADERBOARD — INSTRUCTOR VIEW — AUTO-UPDATES EVERY 3 SECONDS</p>
     </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<div id="display-list">Loading scores...</div>
+
+<script>
+  const supabaseUrl = 'https://fhhdibqjyzfzkkyoruvf.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoaGRpYnFqeXpmemtreW9ydXZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1OTc4MjgsImV4cCI6MjA5NDE3MzgyOH0.0kxrY5VsjryRBRPuOmzDdC6j2v2FkjsFdm34d2aFuVU'; // <--- PASTE THE SAME KEY HERE
+  const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+  async function showScores() {
+    const { data, error } = await _supabase
+      .from('leaderboard')
+      .select('username, score')
+      .order('score', { ascending: false })
+      .limit(10);
+
+    if (data) {
+      const listHtml = data.map(item => `<li>${item.username}: ${item.score}</li>`).join('');
+      document.getElementById('display-list').innerHTML = `<ul>${listHtml}</ul>`;
+    }
+  }
+
+  showScores();
+</script>
     <script>
         // Set up the quiz link
         function setupQuizLink() {
@@ -418,18 +441,45 @@
         }
 
         // Refresh scores from localStorage
-        function refreshScores() {
-            const scores = JSON.parse(localStorage.getItem('brainRotScores')) || [];
-            
-            // Sort by score descending
-            scores.sort((a, b) => b.score - a.score);
+async function refreshScores() {
+    const { data: scores, error } = await _supabase
+        .from('leaderboard')
+        .select('*')
+        .order('score', { ascending: false })
+        .limit(10);
 
-            // Update stats
-            updateStats(scores);
+    if (error) {
+        console.error("Error fetching scores:", error);
+        return;
+    }
 
-            // Update leaderboard
-            updateLeaderboard(scores);
-        }
+    // Update the Stats cards
+    const totalParticipants = scores.length;
+    const averageScore = totalParticipants > 0 
+        ? (scores.reduce((sum, s) => sum + s.score, 0) / totalParticipants).toFixed(1)
+        : 0;
+    const highestScore = scores.length > 0 ? scores[0].score : 0;
+    const topScorerName = scores.length > 0 ? scores[0].username : '-';
+
+    document.getElementById('totalParticipants').textContent = totalParticipants;
+    document.getElementById('averageScore').textContent = averageScore;
+    document.getElementById('highestScore').textContent = highestScore;
+    document.getElementById('topScorer').textContent = `🥇 ${topScorerName}`;
+
+    // Update the Table rows
+    const tbody = document.getElementById('leaderboardBody');
+    tbody.innerHTML = scores.map((score, index) => {
+        const medal = (index === 0) ? '🥇' : (index === 1) ? '🥈' : (index === 2) ? '🥉' : (index + 1) + '.';
+        return `
+            <tr>
+                <td class="rank">${medal}</td>
+                <td class="name">${score.username}</td>
+                <td class="score">${score.score}/6</td>
+                <td class="timestamp">${new Date(score.created_at).toLocaleTimeString()}</td>
+            </tr>
+        `;
+    }).join('');
+}
 
         function updateStats(scores) {
             const totalParticipants = scores.length;

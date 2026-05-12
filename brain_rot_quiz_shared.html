@@ -518,8 +518,9 @@
     <div class="quiz-footer">
         <p>BRAIN ROT QUIZ — Share this page with your classmates!</p>
     </div>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        
         const questions = [
             {
                 question: "1. What chemical is dopamine linked to?",
@@ -667,13 +668,20 @@
             }
         }
 
-        function submitQuiz() {
-            let score = 0;
-            answers.forEach((answerIndex, questionIndex) => {
-                if (answerIndex !== null && questions[questionIndex].options[answerIndex].correct) {
-                    score++;
-                }
-            });
+        async function submitQuiz() {
+    let score = 0;
+    answers.forEach((answerIndex, questionIndex) => {
+        if (answerIndex !== null && questions[questionIndex].options[answerIndex].correct) {
+            score++;
+        }
+    });
+
+    // 1. Show results on screen
+    displayResults(score);
+
+    // 2. Send to Supabase Leaderboard
+    await saveFinalScore(userName, score);
+}
 
             // Save score to localStorage
             let scores = JSON.parse(localStorage.getItem('brainRotScores')) || [];
@@ -723,6 +731,26 @@
         window.addEventListener('load', () => {
             document.getElementById('startBtn').style.display = 'block';
         });
+        
+
+
+  const supabaseUrl = 'https://fhhdibqjyzfzkkyoruvf.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoaGRpYnFqeXpmemtreW9ydXZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1OTc4MjgsImV4cCI6MjA5NDE3MzgyOH0.0kxrY5VsjryRBRPuOmzDdC6j2v2FkjsFdm34d2aFuVU'; // <--- PASTE YOUR KEY HERE
+  const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+  async function saveFinalScore(playerName, playerScore) {
+    const { data, error } = await _supabase
+      .from('leaderboard')
+      .insert([{ username: playerName, score: playerScore }]);
+
+    if (error) {
+      console.error("Error:", error.message);
+    } else {
+      // Redirect to the leaderboard page
+      window.location.href = "brain_rot_leaderboard.html";
+    }
+  }
+
     </script>
 
 </body>
